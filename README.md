@@ -1,5 +1,5 @@
 
-The project cannot ran successfully,
+The project cannot always ran successfully,
 because it was made(or keeps making) with deadline in 4 week.
 Sorry for problem.
 
