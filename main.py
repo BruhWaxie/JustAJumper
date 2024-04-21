@@ -1,10 +1,11 @@
 from pygame import *
+from random import *
 mixer.init()
 font.init()
 
 WIDTH, HEIGHT = 500, 600
 FPS = 60
-display.set_caption('Доганялки')
+display.set_caption('Go Up')
 clock = time.Clock() #game timer
 
 # bg = image.load("background.jpg")
@@ -39,24 +40,29 @@ class Player(GameSprite):
         self.points = 0
         self.jump = False
 
-    def update(self):
-        collidelist = sprite.spritecollide(self, plates, False, sprite.collide_mask)
-        if len(collidelist) > 0:
-            self.jump = True
+
 
 
 
 plates = sprite.Group()
 class Plate(GameSprite):
-    def __init__(self, sprite_image, width=45, height=45, x=100, y=250):
+    def __init__(self, sprite_image,power, width=45, height=45, x=100, y=250):
         super().__init__(sprite_image, width, height, x, y)
         self.add(plates)
         self.add(sprites)
+        self.power = power
+    def update(self):
+        collidelist = sprite.spritecollide(player, plates, False, sprite.collide_mask)
+        if len(collidelist) > 0:
+            player.jump = True
+
 
 
 player = Player(player_img)
-oneplate = Plate(oneplate_img)
+oneplate = Plate(oneplate_img, 1)
 
+
+    
 
 while True:
 
@@ -65,8 +71,12 @@ while True:
             quit()
 
     if player.jump == True:
-        for sprite in sprites:
-            sprite.rect.y += 1
+        if player.power == 1:
+           for i in range(10): 
+                for sprite in sprites:
+                    sprite.rect.y += 1
+                time.wait(30)
+
         player.jump = False
     
     window.fill((255, 255, 255))
