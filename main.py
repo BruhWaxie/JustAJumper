@@ -49,21 +49,36 @@ class Player(GameSprite):
         super().__init__(sprite_image,width, height, x, y)
         self.points = 0
         self.jump = False
-        self.speed = 5
+        self.speed_x = 5
         self.jumpHeight = 0
+        self.onground = True
+        self.speed_y = 0
 
     def update(self):
         self.old_pos = self.rect.x, self.rect.y
         keys = key.get_pressed()
         if keys[K_a] and self.rect.left > 0:
-            self.rect.x -= self.speed
+            self.rect.x -= self.speed_x
         if keys[K_d] and self.rect.right < WIDTH:
-            self.rect.x += self.speed
+            self.rect.x += self.speed_x
+        
+        if not self.onground:
+            self.speed_y += 0.5
+            self.rect.y += self.speed_y
+
         collidelist = sprite.spritecollide(self, plates, False)
         for plate in collidelist:
+                self.jumpHeight = plate.power*10
+                self.rect.bottom = plate.rect.top
+                self.speed_y = 0
+                self.onground = True
+        if len(collidelist) == 0:
+            self.onground = False
+        if self.onground:
+            self.jump = True
+            self.onground = False
+            self.speed_y = -self.jumpHeight
 
-                self.jumpHeight = plate.power*100
-                self.jump = True
         
 
 spikes = sprite.Group()
@@ -86,13 +101,15 @@ class Plate(GameSprite):
 
 
 player = Player(player_img, 35,35, 225, 400)
-oneplate = Plate(oneplate_img, TILESIZE, TILESIZE, 225, 400)
-
+oneplate = Plate(oneplate_img,1, TILESIZE+25, TILESIZE, 225, 425)
+height = 0
 def generate_map():
+    global height
     a = ['p1.txt', 'p2.txt', 'p3.txt', 'p4.txt', 'p5.txt', 'p6.txt', 'p7.txt', 'p8.txt', 'p9.txt', 'p10.txt']
     b = choice(a)
     with open(b, 'r') as file:
-        x, y = 0, 0
+        height = 0
+        x, y = 0, height
         map = file.readlines()
         for row in map:
             for symbol in row:
@@ -115,14 +132,15 @@ def generate_map():
                 elif symbol == 's':
                     GameSprite(flip_spike_img, TILESIZE,TILESIZE,x,y-20)
                 x+=TILESIZE
-            y+=TILESIZE
+            y+=TILESIZE+height
             x=0
+    height = TILESIZE*100
+
 
 generate_map()
 
-
     
-
+generation_speed = 10
 while True:
 
     for e in event.get():
@@ -131,12 +149,13 @@ while True:
 
     if player.jump == True:
         if player.jumpHeight > 0:
-            player.jumpHeight -= 2
             for i in sprites:
                i.rect.y += 2
-
-        player.jump = False
     
+    if generation_speed > 1:
+        generate_map()
+        generation_speed -= 0.01
+
     window.fill((255, 255, 255))
     player.draw(window)
     player.update()
