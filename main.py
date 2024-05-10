@@ -8,25 +8,25 @@ TILESIZE = 30
 FPS = 60
 display.set_caption('Go Up')
 clock = time.Clock() #game timer
-font1 = font.Font('fonts\minecraft_font.ttf')
+font1 = font.Font('minecraft_font.ttf')
 start_text = 'Press "D" or "A" to start the game'
 # bg = image.load("background.jpg")
 # bg = transform.scale(bg, (WIDTH, HEIGHT)) #resize bg
 
 window = display.set_mode((WIDTH, HEIGHT))
-player_img = image.load("images\player.png")
-playerR_img = image.load('images\player_r.png')
-spike_img = image.load('images\spike.png')
+player_img = image.load("player.png")
+playerR_img = image.load('player_r.png')
+spike_img = image.load('spike.png')
 flip_spike_img = transform.flip(spike_img, False, True)
-booster1_img = image.load('images\Booster1.png')
-oneplate_img = image.load('images\one-plate.png')
-jumppad1_img = image.load('images\jumppad1.png')
-plate1_img = image.load('images\plate1.png')
-plate2_img = image.load('images\plate2.png')
-plate3_img = image.load('images\plate3.png')
-jumppad1_2variant_img = image.load('images\jumppad1_2variant.png')
-jumppad1_act_img = image.load('images\jumppad1_activated.png')
-booster1_img = image.load('images\Booster1.png')
+booster1_img = image.load('Booster1.png')
+oneplate_img = image.load('one-plate.png')
+jumppad1_img = image.load('jumppad1.png')
+plate1_img = image.load('plate1.png')
+plate2_img = image.load('plate2.png')
+plate3_img = image.load('plate3.png')
+jumppad1_2variant_img = image.load('jumppad1_2variant.png')
+jumppad1_act_img = image.load('jumppad1_activated.png')
+booster1_img = image.load('Booster1.png')
 
 
 
