@@ -43,9 +43,7 @@ class GameSprite(sprite.Sprite):
     def draw(self, window):
         window.blit(self.image, self.rect)
 
-
 class Player(GameSprite):
-    
     def __init__(self, sprite_image, width=35, height=35, x=100, y=250):
         super().__init__(sprite_image,width, height, x, y)
         self.points = 0
@@ -56,12 +54,16 @@ class Player(GameSprite):
         self.speed_y = 0
 
     def update(self):
+        global p_img, player_img, playerR_img
         self.old_pos = self.rect.x, self.rect.y
         keys = key.get_pressed()
         if keys[K_a] and self.rect.left > 0:
             self.rect.x -= self.speed_x
+            self.image = player_img
         if keys[K_d] and self.rect.right < WIDTH:
             self.rect.x += self.speed_x
+            self.image = playerR_img
+        self.image = transform.scale(self.image, (35,35))
         
         if not self.onground:
             self.speed_y += 0.5
@@ -108,7 +110,7 @@ def generate_map():
     global height
     a = ['p1.txt', 'p2.txt', 'p3.txt', 'p4.txt', 'p5.txt', 'p6.txt', 'p7.txt', 'p8.txt', 'p9.txt', 'p10.txt']
     b = choice(a)
-    with open(b, 'r') as file:
+    with open('e.txt', 'r') as file:
         height = 0
         x, y = 0, height
         map = file.readlines()
