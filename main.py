@@ -1,5 +1,6 @@
 from pygame import *
 from random import *
+import pickle
 mixer.init()
 font.init()
 
@@ -9,11 +10,12 @@ FPS = 60
 display.set_caption('Go Up')
 clock = time.Clock() #game timer
 font1 = font.Font('minecraft_font.ttf')
-start_text = 'Press "D" or "A" to start the game'
+
 # bg = image.load("background.jpg")
 # bg = transform.scale(bg, (WIDTH, HEIGHT)) #resize bg
-
 window = display.set_mode((WIDTH, HEIGHT))
+
+lose_text_img = image.load('loose_title.png')
 player_img = image.load("player.png")
 playerR_img = image.load('player_r.png')
 spike_img = image.load('spike.png')
@@ -27,8 +29,13 @@ plate3_img = image.load('plate3.png')
 jumppad1_2variant_img = image.load('jumppad1_2variant.png')
 jumppad1_act_img = image.load('jumppad1_activated.png')
 booster1_img = image.load('Booster1.png')
+ghost_img = image.load('ghost.png')
+logo_img = image.load('GameTitle.png')
 
+max_points = 0
 
+start_text = font.Font.render('Press SPACE to start the game', True, (153, 153, 153))
+restart_text = font.Font.render('Press SPACE to play again', True, (153, 153, 153))
 
 sprites = sprite.Group()
 class GameSprite(sprite.Sprite):
@@ -42,6 +49,8 @@ class GameSprite(sprite.Sprite):
         self.mask = mask.from_surface(self.image)
     def draw(self, window):
         window.blit(self.image, self.rect)
+    def set_trpsy(self, alpha):
+        self.image.set_alpha(alpha)
 
 class Player(GameSprite):
     def __init__(self, sprite_image, width=35, height=35, x=100, y=250):
@@ -56,6 +65,7 @@ class Player(GameSprite):
     def update(self):
         global p_img, player_img, playerR_img
         self.old_pos = self.rect.x, self.rect.y
+        self.oldx = self.rect.x
         keys = key.get_pressed()
         if keys[K_a] and self.rect.left > 0:
             self.rect.x -= self.speed_x
@@ -63,7 +73,7 @@ class Player(GameSprite):
         if keys[K_d] and self.rect.right < WIDTH:
             self.rect.x += self.speed_x
             self.image = playerR_img
-        self.image = transform.scale(self.image, (35,35))
+        self.image = transform.scale(self.image, (40,40))
         
         if not self.onground:
             self.speed_y += 0.5
@@ -110,16 +120,14 @@ def generate_map():
     global height
     a = ['p1.txt', 'p2.txt', 'p3.txt', 'p4.txt', 'p5.txt', 'p6.txt', 'p7.txt', 'p8.txt', 'p9.txt', 'p10.txt']
     b = choice(a)
-    with open('e.txt', 'r') as file:
-        height = 0
+    with open(b, 'r') as file:
+
         x, y = 0, height
         map = file.readlines()
         for row in map:
             for symbol in row:
                 if symbol == 'p':
                     Plate(oneplate_img, 1, TILESIZE, TILESIZE, x,y)
-                elif symbol == 'S':
-                    GameSprite(spike_img, TILESIZE, TILESIZE, x,y)
                 elif symbol == 'j':
                     Plate(jumppad1_img, 2, TILESIZE,TILESIZE, x,y)
                 elif symbol == 'J':
@@ -132,36 +140,86 @@ def generate_map():
                     Plate(plate2_img, 1, TILESIZE,TILESIZE,x,y)
                 elif symbol == '3':
                     Plate(plate1_img, 1,TILESIZE,TILESIZE,x,y)
-                elif symbol == 's':
-                    GameSprite(flip_spike_img, TILESIZE,TILESIZE,x,y-20)
                 x+=TILESIZE
-            y+=TILESIZE+height
+            y+=TILESIZE
             x=0
-    height = TILESIZE*100
 
 
-generate_map()
-
-    
-generation_speed = 10
+lose_text = GameSprite(lose_text_img, 180, 190, 160, 160)
+logo = GameSprite(logo_img, 180, 190, 160, 60)
+g = GameSprite(ghost_img, 35,35,0,600)
+transparency = 255
+current_map_top = 0
+started = False    
+finish = False
 while True:
 
     for e in event.get():
         if e.type == QUIT:
             quit()
+        elif e.type == KEYDOWN:
+            if e.key == K_SPACE and finish:  # Restart the game if space is pressed and the game is finished
+                finish = False
+                sprites.empty()  # Clear all sprites
+                current_map_top = 0
+                height = 0
+                oneplate = Plate(oneplate_img,1, TILESIZE+25, TILESIZE, 225, 425)
+                player = Player(player_img, 35, 35, 225, 400)  # Reinitialize player
+                generate_map()  # Generate new map
+                height = -HEIGHT/2
+                g.rect.y = 600
+                g.set_trpsy(255)
+                transparency = 255
+            elif e.key == K_SPACE and not started:
+                generate_map()
+                height = -HEIGHT/2
+                current_map_top = 0
+                started = True
+    if started and logo.rect.y > -200:
+        logo.rect.y -= 5
 
-    if player.jump == True:
-        if player.jumpHeight > 0:
-            for i in sprites:
-               i.rect.y += 2
-    
-    if generation_speed > 1:
-        generate_map()
-        time.wait(3)
+                
 
+                         
+    if not finish and started:
+        player.update()
+        if player.jump == True:
+            if player.jumpHeight > 0:
+                for i in sprites:
+                    i.rect.y += 2
+                current_map_top += 2
+        if current_map_top > 0:
+            generate_map()
+            current_map_top = -HEIGHT/2
+        if player.rect.y >= 600:
+            finish = True
+            lose_text.draw(window)
+            for a in sprites:
+                a.kill()
+
+            
+
+
+
+
+            
+
+            
     window.fill((255, 255, 255))
     player.draw(window)
-    player.update()
+    if finish:
+        lose_text.draw(window)
+        g.rect.x = player.oldx
+        g.rect.y -= 1
+        if g.rect.y <= 570:
+            transparency -= 3
+            g.set_trpsy(transparency)
+        g.draw(window)
+        window.blit(restart_text, (250, 550))
     sprites.draw(window)
+    if logo.rect.y > -200:
+        logo.draw(window)
+    if not started:
+        window.blit(start_text, (250, 550))
     display.update()
     clock.tick(FPS)
