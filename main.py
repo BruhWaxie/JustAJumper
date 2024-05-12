@@ -34,8 +34,9 @@ logo_img = image.load('GameTitle.png')
 
 max_points = 0
 
-start_text = font.Font.render('Press SPACE to start the game', True, (153, 153, 153))
-restart_text = font.Font.render('Press SPACE to play again', True, (153, 153, 153))
+
+start_text = font1.render('Press SPACE to start the game', True, (122, 122, 122))
+restart_text = font1.render('Press SPACE to play again', True, (122, 122, 122))
 
 sprites = sprite.Group()
 class GameSprite(sprite.Sprite):
@@ -143,7 +144,9 @@ def generate_map():
                 x+=TILESIZE
             y+=TILESIZE
             x=0
-
+def save_best():
+    with open('points.dat', 'wb') as file:
+        pickle.dump(best_score, file)
 
 lose_text = GameSprite(lose_text_img, 180, 190, 160, 160)
 logo = GameSprite(logo_img, 180, 190, 160, 60)
@@ -152,6 +155,16 @@ transparency = 255
 current_map_top = 0
 started = False    
 finish = False
+start_time = time.get_ticks()
+total_time = 0
+total_time_text = font1.render(f'Score: {total_time}', True, (122, 122, 122))
+best_score = 0
+with open('points.dat', 'rb') as file:
+    best_score = pickle.load(file)
+best_score_text =  font1.render(f'Best Score: {best_score}', True, (122,122,122))
+
+
+
 while True:
 
     for e in event.get():
@@ -178,11 +191,10 @@ while True:
     if started and logo.rect.y > -200:
         logo.rect.y -= 5
 
-                
-
                          
     if not finish and started:
         player.update()
+
         if player.jump == True:
             if player.jumpHeight > 0:
                 for i in sprites:
@@ -193,17 +205,16 @@ while True:
             current_map_top = -HEIGHT/2
         if player.rect.y >= 600:
             finish = True
+            now = time.get_ticks()
+            total_time = now - start_time
+            total_time_text = font1.render(f'Score: {total_time}', True, (122, 122, 122))
+            if best_score < total_time:
+                best_score = total_time
+            best_score_text =  font1.render(f'Best Score: {best_score}', True, (122,122,122))
+            save_best()
             lose_text.draw(window)
             for a in sprites:
                 a.kill()
-
-            
-
-
-
-
-            
-
             
     window.fill((255, 255, 255))
     player.draw(window)
@@ -215,11 +226,14 @@ while True:
             transparency -= 3
             g.set_trpsy(transparency)
         g.draw(window)
-        window.blit(restart_text, (250, 550))
+
+        window.blit(restart_text, (WIDTH/2 - restart_text.get_width()/2, 550))
+        window.blit(total_time_text, (WIDTH/2 - total_time_text.get_width()/2, 350))
+        window.blit(best_score_text, (WIDTH/2 - best_score_text.get_width()/2, 380))
     sprites.draw(window)
     if logo.rect.y > -200:
         logo.draw(window)
     if not started:
-        window.blit(start_text, (250, 550))
+        window.blit(start_text, (WIDTH/2 - start_text.get_width()/2, 550))
     display.update()
     clock.tick(FPS)
